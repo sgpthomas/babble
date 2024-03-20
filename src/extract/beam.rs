@@ -450,17 +450,19 @@ where
         // DidMerge(false, false)
     }
 
-    fn make(&self, egraph: &EGraph<AstNode<Op>, Self>, enode: &AstNode<Op>) -> Self::Data {
+    fn make(egraph: &mut EGraph<AstNode<Op>, Self>, enode: &AstNode<Op>) -> Self::Data {
         // println!("make");
         let x = |i: &Id| &egraph[*i].data;
+
+        let self_ref = egraph.analysis;
 
         match Teachable::as_binding_expr(enode) {
             Some(BindingExpr::Lib(id, f, b)) => {
                 // This is a lib binding!
                 // cross e1, e2 and introduce a lib!
-                let mut e = x(b).add_lib(id, x(f), self.lps);
+                let mut e = x(b).add_lib(id, x(f), self_ref.lps);
                 e.unify();
-                e.prune(self.beam_size, self.lps);
+                e.prune(self_ref.beam_size, self_ref.lps);
                 e
             }
             Some(_) | None => {
@@ -480,14 +482,14 @@ where
                     let mut e = x(&enode.args()[0]).clone();
 
                     for cs in &enode.args()[1..] {
-                        e = e.cross(x(cs), self.lps);
+                        e = e.cross(x(cs), self_ref.lps);
                         // Intermediate prune.
                         e.unify();
-                        e.prune(self.inter_beam, self.lps);
+                        e.prune(self_ref.inter_beam, self_ref.lps);
                     }
 
                     e.unify();
-                    e.prune(self.beam_size, self.lps);
+                    e.prune(self_ref.beam_size, self_ref.lps);
                     e.inc_cost();
                     e
                 }

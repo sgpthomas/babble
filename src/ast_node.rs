@@ -255,6 +255,8 @@ impl<Op> Language for AstNode<Op>
 where
     Op: Ord + Debug + Clone + Hash,
 {
+    type Discriminant = Op;
+
     fn matches(&self, other: &Self) -> bool {
         self.operation == other.operation && self.len() == other.len()
     }
@@ -313,6 +315,10 @@ where
         F: FnMut(Id) -> bool,
     {
         self.iter().copied().any(f)
+    }
+
+    fn discriminant(&self) -> Self::Discriminant {
+        self.operation().clone()
     }
 }
 
