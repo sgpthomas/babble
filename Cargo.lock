@@ -263,7 +263,7 @@ dependencies = [
 [[package]]
 name = "egg"
 version = "0.9.5"
-source = "git+https://github.com/sgpthomas/egg.git?branch=egraph_map#3207ab1dc4e07c5343baa547f8cd200aceba3285"
+source = "git+https://github.com/sgpthomas/egg.git?branch=egraph_map#d5603a1fd27038174737d683de27eec8f0ecf4ca"
 dependencies = [
  "env_logger",
  "fxhash",
@@ -272,10 +272,12 @@ dependencies = [
  "instant",
  "log",
  "saturating",
+ "serde",
  "smallvec",
  "symbol_table",
  "symbolic_expressions",
  "thiserror",
+ "vectorize",
 ]
 
 [[package]]
@@ -365,6 +367,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
 dependencies = [
  "ahash",
+ "serde",
 ]
 
 [[package]]
@@ -396,6 +399,7 @@ checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
 dependencies = [
  "autocfg",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]
@@ -819,6 +823,7 @@ checksum = "32bf088d1d7df2b2b6711b06da3471bc86677383c57b27251e18c56df8deac14"
 dependencies = [
  "ahash",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]
@@ -895,6 +900,15 @@ name = "unicode-ident"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5bd2fe26506023ed7b5e1e315add59d6f584c621d037f9368fea9cfb988f368c"
+
+[[package]]
+name = "vectorize"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25e3bbfdfdcc4ea60ce183b1b45c936aacd69fe097ebf137984a32faf80e365b"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "version_check"

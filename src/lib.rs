@@ -17,7 +17,7 @@
 pub mod ast_node;
 pub mod co_occurrence;
 mod dfta;
-pub mod dreamcoder;
+// pub mod dreamcoder;
 // pub mod experiments;
 pub mod extract;
 pub mod learn;
