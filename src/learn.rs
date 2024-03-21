@@ -21,7 +21,7 @@ use crate::{
 };
 use egg::{Analysis, EGraph, Id, Language, Pattern, Rewrite, Searcher, Var};
 use itertools::Itertools;
-use log::{debug, warn};
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -123,9 +123,13 @@ where
             co_occurrences,
         };
         let dfta = Dfta::from(egraph);
+        debug!("constructed dfta");
         let dfta = dfta.cross_over();
+        debug!("computed dfta cross over");
 
+        debug!("starting enumeration");
         for &state in dfta.output_states() {
+            debug!("enumerating {state:?}");
             learned_lib.enumerate(&dfta, state);
         }
         learned_lib
@@ -360,6 +364,7 @@ where
             );
         }
 
+        info!("{state:?}: {aus:?}");
         *self.aus_by_state.get_mut(&state).unwrap() = aus;
     }
 }
