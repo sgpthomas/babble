@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::lang::Drawing;
-use babble::{ast_node::Expr, learn::LibId};
+use babble::{Expr, LibId};
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -330,8 +330,8 @@ pub(crate) struct BoundingBox {
 impl BoundingBox {
     /// Empty bounding box.
     const EMPTY: Self = Self {
-        lower_left: (std::f64::MAX, std::f64::MAX),
-        upper_right: (std::f64::MIN, std::f64::MIN),
+        lower_left: (f64::MAX, f64::MAX),
+        upper_right: (f64::MIN, f64::MIN),
     };
 
     /// Unions this bounding box with another.

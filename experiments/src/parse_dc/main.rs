@@ -12,7 +12,7 @@
 )]
 #![allow(clippy::non_ascii_literal, clippy::cast_precision_loss)]
 
-use babble::ast_node::{AstNode, Expr};
+use babble::{AstNode, Expr};
 use babble_experiments::dreamcoder::{
     expr::DreamCoderOp,
     json::{CompressionInput, CompressionOutput, CompressionSummary},

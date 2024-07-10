@@ -11,7 +11,7 @@
     unused_lifetimes
 )]
 
-use babble::ast_node::{Expr, Pretty};
+use babble::{Expr, Pretty};
 use babble_experiments::dreamcoder::{expr::DreamCoderOp, json::CompressionInput};
 use clap::Parser;
 use std::{

@@ -1,9 +1,8 @@
 //! The language of Dream&shy;Coder expressions.
 use super::{parse, util::parens};
 use babble::{
-    ast_node::{Arity, AstNode, Expr, Precedence, Printable, Printer},
-    learn::{LibId, ParseLibIdError},
-    teachable::{BindingExpr, DeBruijnIndex, Teachable},
+    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
+    Printable, Printer, Teachable,
 };
 use egg::{RecExpr, Symbol};
 use nom::error::convert_error;
@@ -316,7 +315,7 @@ impl FromStr for DcExpr {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast_node::AstNode;
+    use crate::AstNode;
 
     use super::{DcExpr, DreamCoderOp};
 

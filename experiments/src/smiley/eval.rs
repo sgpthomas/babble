@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::lang::Smiley;
-use babble::{ast_node::Expr, learn::LibId};
+use babble::{Expr, LibId};
 use nalgebra::{self, Matrix2, Rotation2, Vector2};
 use thiserror::Error;
 

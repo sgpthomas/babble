@@ -1,9 +1,8 @@
 //! The AST defining the smiley language.
 
 use babble::{
-    ast_node::{Arity, AstNode, Expr, Precedence, Printable, Printer},
-    learn::{LibId, ParseLibIdError},
-    teachable::{BindingExpr, DeBruijnIndex, Teachable},
+    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
+    Printable, Printer, Teachable,
 };
 use egg::Rewrite;
 use lazy_static::lazy_static;
@@ -137,7 +136,7 @@ impl FromStr for Smiley {
                 } else if let Ok(f) = s.parse::<NotNan<f64>>() {
                     Self::Float(f)
                 } else {
-                    panic!("Could not parse string {:?} as a smiley builtin", s)
+                    panic!("Could not parse string {s:?} as a smiley builtin")
                 }
             }
         };

@@ -13,13 +13,7 @@
 #![allow(clippy::non_ascii_literal)]
 
 use crate::lang::Drawing;
-use babble::{
-    ast_node::{combine_exprs, Expr, Pretty},
-    learn::LibId,
-    rewrites,
-    sexp::Program,
-    teachable::BindingExpr,
-};
+use babble::{combine_exprs, rewrites, sexp::Program, BindingExpr, Expr, LibId, Pretty};
 use babble_experiments::{plumbing, Experiments};
 use clap::Parser;
 use egg::{AstSize, CostFunction, RecExpr};
@@ -295,8 +289,8 @@ fn eval_lib(
     let progs = plumbing::exprs(expr.as_ref());
 
     // With the progs, find apps
-    let tgt = Some(LibId(l.parse().unwrap()));
-    let mut new_progs = find_apps(progs, tgt);
+    let tgt = LibId(l.parse().unwrap());
+    let mut new_progs = find_apps(progs, Some(tgt));
 
     if !selection.is_empty() {
         new_progs = selection.iter().map(|&n| &new_progs[n]).cloned().collect();
@@ -313,10 +307,7 @@ fn eval_lib(
     }
 
     // Hack to pretty print the fn
-    log::info!(
-        "{}",
-        Pretty(&Expr::from(RecExpr::from(libs[&tgt.unwrap()].clone())))
-    );
+    log::info!("{}", Pretty(&Expr::from(RecExpr::from(libs[&tgt].clone()))));
 
     // Recombine and eval
     let fin = plumbing::combine(libs, new_progs);

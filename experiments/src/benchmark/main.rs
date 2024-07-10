@@ -12,7 +12,7 @@
 )]
 #![allow(clippy::non_ascii_literal)]
 
-use babble::{ast_node::Expr, rewrites, util};
+use babble::{rewrites, util, Expr};
 use babble_experiments::{
     cache::Cache,
     dreamcoder::{expr::DreamCoderOp, json::CompressionInput},

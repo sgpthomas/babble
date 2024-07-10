@@ -1,9 +1,8 @@
 //! The AST defining the drawings language from [CogSci dataset](https://sites.google.com/view/language-abstraction/home).
 
 use babble::{
-    ast_node::{Arity, AstNode, Expr, Precedence, Printable, Printer},
-    learn::{LibId, ParseLibIdError},
-    teachable::{BindingExpr, DeBruijnIndex, Teachable},
+    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
+    Printable, Printer, Teachable,
 };
 use ordered_float::NotNan;
 use std::{
@@ -179,7 +178,7 @@ impl FromStr for Drawing {
                 } else if let Ok(f) = s.parse::<NotNan<f64>>() {
                     Self::Float(f)
                 } else {
-                    panic!("how to parse {}?", s)
+                    panic!("how to parse {s}?")
                 }
             }
         };

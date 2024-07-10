@@ -12,10 +12,7 @@
 )]
 #![allow(clippy::non_ascii_literal)]
 
-use babble::{
-    ast_node::{combine_exprs, Expr, Pretty},
-    sexp::Program,
-};
+use babble::{combine_exprs, sexp::Program, Expr, Pretty};
 use babble_experiments::Experiments;
 use clap::Parser;
 use egg::{AstSize, CostFunction, RecExpr};

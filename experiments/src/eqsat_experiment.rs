@@ -10,12 +10,11 @@ use log::debug;
 use serde::ser::Serialize;
 
 use babble::{
-    ast_node::{Arity, AstNode, Expr, Pretty, Printable},
     extract::{
         beam::{LibExtractor, PartialLibCost},
         lift_libs,
     },
-    teachable::Teachable,
+    Arity, AstNode, Expr, Pretty, Printable, Teachable,
 };
 
 use super::{CsvWriter, Experiment, ExperimentResult};

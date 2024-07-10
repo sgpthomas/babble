@@ -13,11 +13,7 @@
 #![allow(clippy::non_ascii_literal)]
 
 use crate::lang::ListOp;
-use babble::{
-    ast_node::{combine_exprs, Expr, Pretty},
-    rewrites,
-    sexp::Program,
-};
+use babble::{combine_exprs, rewrites, sexp::Program, Expr, Pretty};
 use babble_experiments::Experiments;
 use clap::Parser;
 use egg::{AstSize, CostFunction, RecExpr};

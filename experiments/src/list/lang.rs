@@ -1,9 +1,8 @@
 //! The language of list transformations.
 
 use babble::{
-    ast_node::{Arity, AstNode, Expr, Precedence, Printable, Printer},
-    learn::{LibId, ParseLibIdError},
-    teachable::{BindingExpr, DeBruijnIndex, Teachable},
+    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
+    Printable, Printer, Teachable,
 };
 use babble_macros::rewrite_rules;
 use egg::{Rewrite, Symbol};

@@ -15,13 +15,20 @@
 #![allow(clippy::non_ascii_literal)]
 #![allow(clippy::non_canonical_partial_ord_impl)]
 
-pub mod ast_node;
-pub mod co_occurrence;
+mod ast_node;
+mod co_occurrence;
 mod dfta;
 pub mod extract;
-pub mod learn;
+mod learn;
 pub mod rewrites;
 pub mod sexp;
 pub mod simple_lang;
-pub mod teachable;
+mod teachable;
 pub mod util;
+
+pub use ast_node::{
+    combine_exprs, Arity, AstNode, Expr, PartialExpr, Precedence, Pretty, Printable, Printer,
+};
+pub use co_occurrence::{COBuilder, CoOccurrences};
+pub use learn::{LearnedLibrary, LibId, ParseLibIdError};
+pub use teachable::{BindingExpr, DeBruijnIndex, ParseDeBruijnIndexError, Teachable};
