@@ -1,6 +1,6 @@
 //! The language of Dream&shy;Coder expressions.
 use super::{parse, util::parens};
-use crate::{
+use babble::{
     ast_node::{Arity, AstNode, Expr, Precedence, Printable, Printer},
     learn::{LibId, ParseLibIdError},
     teachable::{BindingExpr, DeBruijnIndex, Teachable},
@@ -87,7 +87,7 @@ pub enum DreamCoderOp {
     /// A symbol, typically one of the language's primitives.
     Symbol(Symbol),
 
-    /// An "inlined" expression. This is how DreamCoder represents learned
+    /// An "inlined" expression. This is how `DreamCoder` represents learned
     /// functions.
     Inlined(Box<Expr<Self>>),
 

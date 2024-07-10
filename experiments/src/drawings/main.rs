@@ -15,12 +15,12 @@
 use crate::lang::Drawing;
 use babble::{
     ast_node::{combine_exprs, Expr, Pretty},
-    experiments::{plumbing, Experiments},
     learn::LibId,
     rewrites,
     sexp::Program,
     teachable::BindingExpr,
 };
+use babble_experiments::{plumbing, Experiments};
 use clap::Parser;
 use egg::{AstSize, CostFunction, RecExpr};
 use std::{

@@ -12,24 +12,21 @@
 )]
 #![allow(clippy::non_ascii_literal)]
 
-use babble::{
-    ast_node::{combine_exprs, Expr, Pretty},
-    experiments::Experiments,
-    sexp::Program,
+use babble::ast_node::{combine_exprs, Expr, Pretty};
+use babble_experiments::{
+    dreamcoder::{expr::DreamCoderOp, json::CompressionInput},
+    Experiments,
 };
 use clap::Parser;
 use egg::{AstSize, CostFunction, RecExpr};
+// use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::{
-    convert::TryInto,
     fs,
     io::{self, Read},
     path::PathBuf,
 };
 
-mod eval;
-mod lang;
-mod svg;
-
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser)]
 #[clap(version, author, about)]
 struct Opts {
@@ -37,9 +34,9 @@ struct Opts {
     #[clap(parse(from_os_str))]
     file: Option<PathBuf>,
 
-    /// Evaluate the input file and output it as an SVG.
+    /// Enables pretty-printing of JSON output.
     #[clap(long)]
-    svg: bool,
+    pretty: bool,
 
     /// Whether to learn "library functions" with no arguments.
     #[clap(long)]
@@ -53,12 +50,16 @@ struct Opts {
     #[clap(long)]
     no_dsr: bool,
 
+    /// The number of programs to anti-unify
+    #[clap(long)]
+    limit: Vec<usize>,
+
     /// The beam sizes to use for the beam extractor
-    #[clap(long, default_value = "400")]
+    #[clap(long)]
     beams: Vec<usize>,
 
     /// The number of libs to learn at a time
-    #[clap(long, default_value = "1")]
+    #[clap(long)]
     lps: Vec<usize>,
 
     /// The number of rounds of lib learning to run
@@ -72,6 +73,7 @@ fn main() {
 
     let input = opts
         .file
+        .as_ref()
         .map_or_else(
             || {
                 let mut buf = String::new();
@@ -81,32 +83,27 @@ fn main() {
         )
         .expect("Error reading input");
 
-    // Parse a list of exprs
-    let prog: Vec<Expr<_>> = Program::parse(&input)
-        .expect("Failed to parse program")
-        .0
-        .into_iter()
-        .map(|x| {
-            x.try_into()
-                .expect("Input is not a valid list of expressions")
-        }) // Vec<Sexp> -> Vec<Expr>
-        .collect();
+    let input: CompressionInput = serde_json::from_str(&input).expect("Error parsing JSON input");
 
-    if opts.svg {
-        let expr: Expr<_> = combine_exprs(prog).into();
-        let value = eval::eval(&expr).expect("Failed to evaluate expression");
-        let picture = value
-            .into_picture()
-            .expect("Result of evaluation is not a picture");
-        picture.write_svg(io::stdout()).expect("Error writing SVG");
-    } else {
+    let mut all = Experiments::new();
+
+    for &limit in &opts.limit {
+        let exprs: Vec<Expr<DreamCoderOp>> = input
+            .clone()
+            .frontiers
+            .into_iter()
+            .flat_map(|frontier| frontier.programs)
+            .map(|program| program.program.into())
+            .take(limit)
+            .collect();
+
         // For the sake of pretty printing
         {
-            let initial_expr: RecExpr<_> = combine_exprs(prog.clone());
+            let initial_expr: RecExpr<_> = combine_exprs(exprs.clone());
             let initial_cost = AstSize.cost_rec(&initial_expr);
 
-            println!("Initial expression (cost {initial_cost}):");
-            println!("{}", Pretty(&Expr::from(initial_expr)));
+            println!("Initial expression (cost {initial_cost}, limit {limit}):");
+            println!("{}", Pretty(&Expr::from(initial_expr.clone())));
             println!();
         }
 
@@ -114,24 +111,27 @@ fn main() {
             vec![]
         } else {
             vec![
-                egg::rewrite!("circle rotate"; "circle" => "(rotate 90 circle)"),
-                egg::rewrite!("circle scale"; "circle" => "(scale 1 circle)"),
+                egg::rewrite!("add commute"; "(@ (@ + ?x) ?y)" => "(@ (@ + ?y) ?x)"),
+                egg::rewrite!("add assoc"; "(@ (@ + (@ (@ + ?x) ?y)) ?z)" => "(@ (@ + ?x) (@ (@ + ?y) ?z))"),
+                egg::rewrite!("len range"; "(@ length (@ range ?x))" => "?x"),
             ]
         };
 
-        let exps = Experiments::gen(
-            prog,
+        let experiments = Experiments::gen(
+            exprs,
             &[],
             &dsrs,
             opts.beams.clone(),
             &opts.lps,
             opts.rounds,
-            (),
+            limit,
             opts.learn_constants,
             opts.max_arity,
         );
 
-        println!("running...");
-        exps.run("harness/data_gen/res_smiley.csv");
+        all.add(experiments);
     }
+
+    println!("running...");
+    all.run("harness/data_gen/res_compression.csv");
 }

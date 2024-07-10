@@ -78,7 +78,7 @@ where
 
     /// Build the co-occurrence relation for a given e-class and its descendants.
     fn run_from_class(&mut self, id: Id) {
-        if self.reachable.get(&id).is_some() {
+        if self.reachable.contains_key(&id) {
             // Already visited; we must be in a cycle
             return;
         }

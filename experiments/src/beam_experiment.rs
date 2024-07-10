@@ -9,7 +9,7 @@ use itertools::Itertools;
 use log::{debug, info};
 use serde::ser::Serialize;
 
-use crate::{
+use babble::{
     ast_node::{Arity, AstNode, Expr, Pretty, Printable},
     co_occurrence::COBuilder,
     extract::{apply_libs, beam::PartialLibCost},
@@ -24,7 +24,7 @@ use super::{CsvWriter, Experiment, ExperimentResult};
 #[derive(Debug)]
 pub struct BeamExperiment<Op, Extra>
 where
-    Op: Display + Hash + Clone + Ord + 'static,
+    Op: Display + Hash + Clone + Ord + Teachable + Arity + Send + Sync + 'static,
 {
     /// The domain-specific rewrites to apply
     dsrs: Vec<Rewrite<AstNode<Op>, PartialLibCost>>,

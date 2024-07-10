@@ -11,10 +11,8 @@
     unused_lifetimes
 )]
 
-use babble::{
-    ast_node::{Expr, Pretty},
-    dreamcoder::{expr::DreamCoderOp, json::CompressionInput},
-};
+use babble::ast_node::{Expr, Pretty};
+use babble_experiments::dreamcoder::{expr::DreamCoderOp, json::CompressionInput};
 use clap::Parser;
 use std::{
     collections::{BTreeMap, BTreeSet},

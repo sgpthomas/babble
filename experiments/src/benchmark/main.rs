@@ -12,11 +12,11 @@
 )]
 #![allow(clippy::non_ascii_literal)]
 
-use babble::{
-    ast_node::Expr,
+use babble::{ast_node::Expr, rewrites, util};
+use babble_experiments::{
+    cache::Cache,
     dreamcoder::{expr::DreamCoderOp, json::CompressionInput},
-    experiments::{cache::Cache, BeamExperiment, EqsatExperiment, Experiment, Rounds, Summary},
-    rewrites, util,
+    BeamExperiment, EqsatExperiment, Experiment, Rounds, Summary,
 };
 use clap::Parser;
 use serde::{Deserialize, Serialize};
@@ -72,6 +72,7 @@ struct Benchmark<'a> {
     path: &'a Path,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Iteration {
     domain: String,
@@ -132,7 +133,7 @@ fn main() -> anyhow::Result<()> {
     let benchmark_path = opts.file.clone().unwrap_or(PathBuf::from(BENCHMARK_PATH));
 
     let mut benchmark_dirs = Vec::new();
-    for entry in fs::read_dir(&benchmark_path)? {
+    for entry in fs::read_dir(benchmark_path)? {
         let path = entry?.path();
         if fs::metadata(&path)?.is_dir() {
             benchmark_dirs.push(path);
@@ -231,7 +232,7 @@ fn run_domain(
                 let use_dsrs = match opts.mode.as_str() {
                     "babble" => true,
                     "au" => false,
-                    m => panic!("bad mode: {}", m),
+                    m => panic!("bad mode: {m}"),
                 };
                 let experiment = Rounds::new(
                     opts.rounds,

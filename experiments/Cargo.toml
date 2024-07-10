@@ -1,0 +1,56 @@
+[package]
+name = "babble-experiments"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+babble = { path = ".." }
+babble-macros.workspace = true
+egg.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+itertools.workspace = true
+env_logger.workspace = true
+log.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+nom.workspace = true
+csv = "1"
+indexmap = "1.7"
+time = { version = "0.3", features = ["formatting"] }
+ron = "0.7"
+rayon = "1.5.1"
+clap = { version = "3.2.8", features = ["derive"] }
+ordered-float = "2"
+xml-rs = "0.8"
+lazy_static = "1.4"
+ref-cast = "1"
+nalgebra = "0.32.2"
+
+[[bin]]
+name = "benchmark"
+path = "src/benchmark/main.rs"
+
+[[bin]]
+name = "compression"
+path = "src/compression/main.rs"
+
+[[bin]]
+name = "drawings"
+path = "src/drawings/main.rs"
+
+[[bin]]
+name = "list"
+path = "src/list/main.rs"
+
+[[bin]]
+name = "parse_dc"
+path = "src/parse_dc/main.rs"
+
+[[bin]]
+name = "print_benchmarks"
+path = "src/print_benchmarks/main.rs"
+
+[[bin]]
+name = "smiley"
+path = "src/smiley/main.rs"

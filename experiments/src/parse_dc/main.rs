@@ -12,12 +12,10 @@
 )]
 #![allow(clippy::non_ascii_literal, clippy::cast_precision_loss)]
 
-use babble::{
-    ast_node::{AstNode, Expr},
-    dreamcoder::{
-        expr::DreamCoderOp,
-        json::{CompressionInput, CompressionOutput, CompressionSummary},
-    },
+use babble::ast_node::{AstNode, Expr};
+use babble_experiments::dreamcoder::{
+    expr::DreamCoderOp,
+    json::{CompressionInput, CompressionOutput, CompressionSummary},
 };
 use clap::Parser;
 use egg::RecExpr;
@@ -64,7 +62,6 @@ fn calc_cost(
     let mut q = vec![expr.len() - 1];
 
     while let Some(id) = q.pop() {
-        let id = id;
         if let DreamCoderOp::Inlined(e) = &expr[id].operation() {
             if new_libs.contains(e) {
                 let re = RecExpr::from(*e.clone());

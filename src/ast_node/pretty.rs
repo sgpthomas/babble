@@ -213,7 +213,7 @@ impl<W: Write> Printer<W> {
         Ok(())
     }
 
-    /// print f() in parentheses
+    /// print `f()` in parentheses
     ///
     /// # Errors
     ///
@@ -225,7 +225,7 @@ impl<W: Write> Printer<W> {
         self.writer.write_char(')')
     }
 
-    /// print f() in brackets
+    /// print `f()` in brackets
     ///
     /// # Errors
     ///
@@ -237,7 +237,7 @@ impl<W: Write> Printer<W> {
         self.writer.write_char(']')
     }
 
-    /// print f() indented one more level
+    /// print `f()` indented one more level
     ///
     /// # Errors
     ///
@@ -250,7 +250,7 @@ impl<W: Write> Printer<W> {
         Ok(())
     }
 
-    /// print f() inside the scope of a binder
+    /// print `f()` inside the scope of a binder
     ///
     /// # Errors
     ///

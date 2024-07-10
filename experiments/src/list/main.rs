@@ -15,10 +15,10 @@
 use crate::lang::ListOp;
 use babble::{
     ast_node::{combine_exprs, Expr, Pretty},
-    experiments::Experiments,
     rewrites,
     sexp::Program,
 };
+use babble_experiments::Experiments;
 use clap::Parser;
 use egg::{AstSize, CostFunction, RecExpr};
 use std::{

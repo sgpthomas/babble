@@ -13,12 +13,11 @@
     unused_lifetimes
 )]
 #![allow(clippy::non_ascii_literal)]
+#![allow(clippy::non_canonical_partial_ord_impl)]
 
 pub mod ast_node;
 pub mod co_occurrence;
 mod dfta;
-pub mod dreamcoder;
-pub mod experiments;
 pub mod extract;
 pub mod learn;
 pub mod rewrites;

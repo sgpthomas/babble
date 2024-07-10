@@ -1,7 +1,7 @@
 pub use self::beam_experiment::BeamExperiment;
 pub use self::eqsat_experiment::EqsatExperiment;
 
-use crate::{
+use babble::{
     ast_node::{Arity, AstNode, Expr, Pretty, Printable},
     extract::{apply_libs, beam::PartialLibCost},
     teachable::Teachable,
@@ -21,6 +21,7 @@ use std::{
 
 mod beam_experiment;
 pub mod cache;
+pub mod dreamcoder;
 mod eqsat_experiment;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -300,7 +301,7 @@ pub mod plumbing {
 
     use egg::{Id, Language, RecExpr};
 
-    use crate::{
+    use babble::{
         ast_node::{Arity, AstNode, Expr},
         learn::LibId,
         teachable::Teachable,
@@ -365,7 +366,7 @@ pub mod plumbing {
         Op: Teachable + Clone + std::hash::Hash + Ord + std::fmt::Debug,
     {
         // Check what kind of node we're at.
-        if let Some(crate::teachable::BindingExpr::Lib(lid, defn, b)) =
+        if let Some(babble::teachable::BindingExpr::Lib(lid, defn, b)) =
             &from[usize::from(ix)].as_binding_expr()
         {
             // Extract recursive expression
@@ -384,7 +385,7 @@ pub mod plumbing {
                 //   (body)
                 // ```
                 match &from[usize::from(x)].as_binding_expr() {
-                    Some(crate::teachable::BindingExpr::Lib(_n_lid, _n_defn, n_b)) => {
+                    Some(babble::teachable::BindingExpr::Lib(_n_lid, _n_defn, n_b)) => {
                         // We have a nested lib!
                         // Process the lib itself by walking thru this node
                         walk_libs(from, res, x);
@@ -425,7 +426,7 @@ pub mod plumbing {
     {
         // Check what kind of node we're at.
         match &from[usize::from(ix)].as_binding_expr() {
-            Some(crate::teachable::BindingExpr::Lib(_, _, b)) => {
+            Some(babble::teachable::BindingExpr::Lib(_, _, b)) => {
                 // Recursively walk in body
                 walk_exprs(from, res, **b);
             }

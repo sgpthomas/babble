@@ -29,7 +29,7 @@ impl Picture {
         )?;
         xml_writer.write(XmlEvent::start_element("style"))?;
         xml_writer.write(XmlEvent::cdata(
-            r#"
+            r"
             svg {
               width: 100vmin;
               height: 100vmin;
@@ -41,7 +41,7 @@ impl Picture {
               stroke: black;
               vector-effect: non-scaling-stroke;
             }
-           "#,
+           ",
         ))?;
         xml_writer.write(XmlEvent::end_element())?;
 
