@@ -18,6 +18,7 @@ use crate::{
     co_occurrence::CoOccurrences,
     dfta::Dfta,
     teachable::{BindingExpr, Teachable},
+    COBuilder,
 };
 use egg::{Analysis, EGraph, Id, Language, Pattern, Rewrite, Searcher, Var};
 use itertools::Itertools;
@@ -83,6 +84,54 @@ impl Match {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LearnedLibraryBuilder {
+    learn_trivial: bool,
+    learn_constants: bool,
+    max_arity: Option<usize>,
+}
+
+impl LearnedLibraryBuilder {
+    #[must_use]
+    pub fn learn_trivial(mut self, trivial: bool) -> Self {
+        self.learn_trivial = trivial;
+        self
+    }
+
+    #[must_use]
+    pub fn learn_constants(mut self, constants: bool) -> Self {
+        self.learn_constants = constants;
+        self
+    }
+
+    #[must_use]
+    pub fn max_arity(mut self, arity: Option<usize>) -> Self {
+        self.max_arity = arity;
+        self
+    }
+
+    pub fn build<Op, A>(
+        self,
+        egraph: &EGraph<AstNode<Op>, A>,
+        roots: &[Id],
+    ) -> LearnedLibrary<Op, (Id, Id)>
+    where
+        Op: Arity + Clone + Debug + Ord + Sync + Send + Display + std::hash::Hash + 'static,
+        A: Analysis<AstNode<Op>> + Clone,
+        AstNode<Op>: Language,
+    {
+        let co_ext = COBuilder::new(egraph, roots);
+        let co_occurs = co_ext.run();
+        LearnedLibrary::new(
+            egraph,
+            self.learn_trivial,
+            self.learn_constants,
+            self.max_arity,
+            co_occurs,
+        )
+    }
+}
+
 /// A `LearnedLibrary<Op>` is a collection of functions learned from an
 /// [`EGraph<AstNode<Op>, _>`] by antiunifying pairs of enodes to find their
 /// common structure.
@@ -93,7 +142,9 @@ pub struct LearnedLibrary<Op, T> {
     /// A map from DFTA states (i.e. pairs of enodes) to their antiunifications.
     aus_by_state: BTreeMap<T, BTreeSet<PartialExpr<Op, T>>>,
     /// A set of all the nontrivial antiunifications discovered.
-    nontrivial_aus: BTreeSet<PartialExpr<Op, Var>>,
+    aus: BTreeSet<PartialExpr<Op, Var>>,
+    /// Whether to learn "trivial" anti-unifications.
+    learn_trivial: bool,
     /// Whether to also learn "library functions" which take no arguments.
     learn_constants: bool,
     /// Maximum arity of functions to learn.
@@ -111,13 +162,15 @@ where
     /// enodes to find their common structure.
     pub fn new<A: Analysis<AstNode<Op>>>(
         egraph: &'a EGraph<AstNode<Op>, A>,
+        learn_trivial: bool,
         learn_constants: bool,
         max_arity: Option<usize>,
         co_occurrences: CoOccurrences,
     ) -> Self {
         let mut learned_lib = Self {
             aus_by_state: BTreeMap::new(),
-            nontrivial_aus: BTreeSet::new(),
+            aus: BTreeSet::new(),
+            learn_trivial,
             learn_constants,
             max_arity,
             co_occurrences,
@@ -161,7 +214,7 @@ where
     pub fn rewrites<A: Analysis<AstNode<Op>>>(
         &self,
     ) -> impl Iterator<Item = Rewrite<AstNode<Op>, A>> + '_ {
-        self.nontrivial_aus.iter().enumerate().map(|(i, au)| {
+        self.aus.iter().enumerate().map(|(i, au)| {
             let searcher: Pattern<_> = au.clone().into();
             let applier: Pattern<_> = reify(LibId(i), au.clone()).into();
             let name = format!("anti-unify {i}");
@@ -174,7 +227,7 @@ where
 
     /// Right-hand sides of library rewrites.
     pub fn libs(&self) -> impl Iterator<Item = Pattern<AstNode<Op>>> + '_ {
-        self.nontrivial_aus.iter().enumerate().map(|(i, au)| {
+        self.aus.iter().enumerate().map(|(i, au)| {
             let applier: Pattern<_> = reify(LibId(i), au.clone()).into();
             applier
         })
@@ -183,7 +236,7 @@ where
     /// Number of patterns learned.
     #[must_use]
     pub fn size(&self) -> usize {
-        self.nontrivial_aus.len()
+        self.aus.len()
     }
 
     /// If two candidate patterns (stored in `nontrivial_aus`) have the same set of matches,
@@ -201,7 +254,7 @@ where
         // The algorithm is simply to iterate over all patterns,
         // and save their matches in a dictionary indexed by the match set.
         let mut cache: BTreeMap<Vec<Match>, PartialExpr<Op, Var>> = BTreeMap::new();
-        for au in &self.nontrivial_aus {
+        for au in &self.aus {
             let pattern: Pattern<_> = au.clone().into();
             // A key in `cache` is a set of matches
             // represented as a sorted vector.
@@ -227,7 +280,7 @@ where
                 }
             }
         }
-        self.nontrivial_aus = cache.values().cloned().collect();
+        self.aus = cache.values().cloned().collect();
     }
 }
 
@@ -312,6 +365,7 @@ where
             // discarding redundant anti-unifications.
 
             let learn_constants = self.learn_constants;
+            let learn_trivial = self.learn_trivial;
 
             let nontrivial_aus = aus
                 .iter()
@@ -343,14 +397,14 @@ where
                     // if size(e[x_1/e_1, ..., x_n/e_n]) > 2n + 1. This
                     // corresponds to an anti-unification containing at least n
                     // + 1 nodes.
-                    if num_vars < au.num_holes() || au.num_nodes() > num_vars + 1 {
+                    if learn_trivial || num_vars < au.num_holes() || au.num_nodes() > num_vars + 1 {
                         Some(au)
                     } else {
                         None
                     }
                 });
 
-            self.nontrivial_aus.extend(nontrivial_aus);
+            self.aus.extend(nontrivial_aus);
         }
 
         if aus.len() > 10_000 {
