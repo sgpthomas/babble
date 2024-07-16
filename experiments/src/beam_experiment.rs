@@ -11,7 +11,8 @@ use serde::ser::Serialize;
 
 use babble::{
     extract::{apply_libs, beam::PartialLibCost},
-    Arity, AstNode, COBuilder, Expr, LearnedLibrary, Pretty, Printable, Teachable,
+    Arity, AstNode, COBuilder, DiscriminantEq, Expr, LearnedLibraryBuilder, Pretty, Printable,
+    Teachable,
 };
 
 use super::{CsvWriter, Experiment, ExperimentResult};
@@ -53,6 +54,7 @@ where
         + Ord
         + Sync
         + Send
+        + DiscriminantEq
         + 'static,
 {
     // TODO: Use a builder pattern.
@@ -115,8 +117,11 @@ where
 
         info!("Running anti-unification... ");
         let au_time = Instant::now();
-        let mut learned_lib =
-            LearnedLibrary::new(&aeg, self.learn_constants, self.max_arity, co_occurs);
+        let mut learned_lib = LearnedLibraryBuilder::default()
+            .learn_constants(self.learn_constants)
+            .max_arity(self.max_arity)
+            .with_co_occurs(co_occurs)
+            .build(&aeg);
         info!(
             "Found {} patterns in {}ms",
             learned_lib.size(),
@@ -195,6 +200,7 @@ where
         + Display
         + Hash
         + Ord
+        + DiscriminantEq
         + 'static,
     Extra: Serialize + Debug + Clone,
 {

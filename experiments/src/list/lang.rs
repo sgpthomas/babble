@@ -1,8 +1,8 @@
 //! The language of list transformations.
 
 use babble::{
-    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
-    Printable, Printer, Teachable,
+    Arity, AstNode, BindingExpr, DeBruijnIndex, DiscriminantEq, Expr, LibId, ParseLibIdError,
+    Precedence, Printable, Printer, Teachable,
 };
 use babble_macros::rewrite_rules;
 use egg::{Rewrite, Symbol};
@@ -201,6 +201,12 @@ impl Printable for ListOp {
             }
             (op, _) => write!(printer.writer, "{op} ???"),
         }
+    }
+}
+
+impl DiscriminantEq for ListOp {
+    fn discriminant_eq(&self, other: &Self) -> bool {
+        self.eq(other)
     }
 }
 

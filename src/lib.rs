@@ -30,5 +30,5 @@ pub use ast_node::{
     combine_exprs, Arity, AstNode, Expr, PartialExpr, Precedence, Pretty, Printable, Printer,
 };
 pub use co_occurrence::{COBuilder, CoOccurrences};
-pub use learn::{LearnedLibrary, LearnedLibraryBuilder, LibId, ParseLibIdError};
+pub use learn::{DiscriminantEq, LearnedLibrary, LearnedLibraryBuilder, LibId, ParseLibIdError};
 pub use teachable::{BindingExpr, DeBruijnIndex, ParseDeBruijnIndexError, Teachable};

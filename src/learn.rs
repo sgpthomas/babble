@@ -84,14 +84,42 @@ impl Match {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct LearnedLibraryBuilder {
+#[derive(Clone, Debug)]
+pub struct LearnedLibraryBuilder<Op> {
     learn_trivial: bool,
     learn_constants: bool,
     max_arity: Option<usize>,
+    banned_ops: Vec<Op>,
+    roots: Vec<Id>,
+    co_occurences: Option<CoOccurrences>,
 }
 
-impl LearnedLibraryBuilder {
+impl<Op> Default for LearnedLibraryBuilder<Op> {
+    fn default() -> Self {
+        Self {
+            learn_trivial: false,
+            learn_constants: false,
+            max_arity: Option::default(),
+            banned_ops: vec![],
+            roots: vec![],
+            co_occurences: Option::default(),
+        }
+    }
+}
+
+impl<Op> LearnedLibraryBuilder<Op>
+where
+    Op: Arity
+        + Clone
+        + Debug
+        + Ord
+        + Sync
+        + Send
+        + Display
+        + std::hash::Hash
+        + DiscriminantEq
+        + 'static,
+{
     #[must_use]
     pub fn learn_trivial(mut self, trivial: bool) -> Self {
         self.learn_trivial = trivial;
@@ -110,26 +138,53 @@ impl LearnedLibraryBuilder {
         self
     }
 
-    pub fn build<Op, A>(
-        self,
-        egraph: &EGraph<AstNode<Op>, A>,
-        roots: &[Id],
-    ) -> LearnedLibrary<Op, (Id, Id)>
+    #[must_use]
+    pub fn ban_op(mut self, op: Op) -> Self {
+        self.banned_ops.push(op);
+        self
+    }
+
+    #[must_use]
+    pub fn ban_ops(mut self, iter: impl IntoIterator<Item = Op>) -> Self {
+        self.banned_ops.extend(iter);
+        self
+    }
+
+    #[must_use]
+    pub fn with_roots(mut self, roots: Vec<Id>) -> Self {
+        self.roots = roots;
+        self
+    }
+
+    #[must_use]
+    pub fn with_co_occurs(mut self, co_occurrences: CoOccurrences) -> Self {
+        self.co_occurences = Some(co_occurrences);
+        self
+    }
+
+    pub fn build<A>(self, egraph: &EGraph<AstNode<Op>, A>) -> LearnedLibrary<Op, (Id, Id)>
     where
-        Op: Arity + Clone + Debug + Ord + Sync + Send + Display + std::hash::Hash + 'static,
         A: Analysis<AstNode<Op>> + Clone,
         AstNode<Op>: Language,
     {
-        let co_ext = COBuilder::new(egraph, roots);
-        let co_occurs = co_ext.run();
+        let roots = &self.roots;
+        let co_occurs = self.co_occurences.unwrap_or_else(|| {
+            let co_ext = COBuilder::new(egraph, roots);
+            co_ext.run()
+        });
         LearnedLibrary::new(
             egraph,
             self.learn_trivial,
             self.learn_constants,
             self.max_arity,
+            self.banned_ops,
             co_occurs,
         )
     }
+}
+
+pub trait DiscriminantEq {
+    fn discriminant_eq(&self, other: &Self) -> bool;
 }
 
 /// A `LearnedLibrary<Op>` is a collection of functions learned from an
@@ -149,22 +204,25 @@ pub struct LearnedLibrary<Op, T> {
     learn_constants: bool,
     /// Maximum arity of functions to learn.
     max_arity: Option<usize>,
+    /// Operations that must never appear in learned abstractions.
+    banned_ops: Vec<Op>,
     /// Data about which e-classes can co-occur.
     co_occurrences: CoOccurrences,
 }
 
 impl<'a, Op> LearnedLibrary<Op, (Id, Id)>
 where
-    Op: Arity + Clone + Debug + Ord + Sync + Send + Display + 'static,
+    Op: Arity + Clone + Debug + Ord + Sync + Send + Display + DiscriminantEq + 'static,
     AstNode<Op>: Language,
 {
     /// Constructs a [`LearnedLibrary`] from an [`EGraph`] by antiunifying pairs of
     /// enodes to find their common structure.
-    pub fn new<A: Analysis<AstNode<Op>>>(
+    fn new<A: Analysis<AstNode<Op>>>(
         egraph: &'a EGraph<AstNode<Op>, A>,
         learn_trivial: bool,
         learn_constants: bool,
         max_arity: Option<usize>,
+        banned_ops: Vec<Op>,
         co_occurrences: CoOccurrences,
     ) -> Self {
         let mut learned_lib = Self {
@@ -173,6 +231,7 @@ where
             learn_trivial,
             learn_constants,
             max_arity,
+            banned_ops,
             co_occurrences,
         };
         let dfta = Dfta::from(egraph);
@@ -187,7 +246,7 @@ where
 
 impl<Op, T> LearnedLibrary<Op, T>
 where
-    Op: Arity + Clone + Debug + Display + Ord + Send + Sync + Teachable + 'static,
+    Op: Arity + Clone + Debug + Display + Ord + Send + Sync + Teachable + DiscriminantEq + 'static,
     AstNode<Op>: Language,
 {
     /// Returns an iterator over rewrite rules that replace expressions with
@@ -286,7 +345,7 @@ where
 
 impl<Op> LearnedLibrary<Op, (Id, Id)>
 where
-    Op: Arity + Clone + Debug + Ord,
+    Op: Arity + Clone + Debug + Ord + DiscriminantEq,
 {
     /// Computes the antiunifications of `state` in the DFTA `dfta`.
     fn enumerate(&mut self, dfta: &Dfta<(Op, Op), (Id, Id)>, state: (Id, Id)) {
@@ -317,6 +376,9 @@ where
         if let Some(rules) = dfta.get_by_output(&state) {
             for ((op1, op2), inputs) in rules {
                 if op1 == op2 {
+                    // if self.banned_ops.iter().any(|op| op.discriminant_eq(op1)) {
+                    //     continue;
+                    // }
                     same = true;
                     if inputs.is_empty() {
                         aus.insert(AstNode::leaf(op1.clone()).into());
@@ -366,6 +428,7 @@ where
 
             let learn_constants = self.learn_constants;
             let learn_trivial = self.learn_trivial;
+            let banned_ops = &self.banned_ops;
 
             let nontrivial_aus = aus
                 .iter()
@@ -402,6 +465,12 @@ where
                     } else {
                         None
                     }
+                })
+                .filter(|au| match au {
+                    PartialExpr::Node(ast_node) => !banned_ops
+                        .iter()
+                        .any(|op| ast_node.operation().discriminant_eq(op)),
+                    PartialExpr::Hole(_) => true,
                 });
 
             self.aus.extend(nontrivial_aus);

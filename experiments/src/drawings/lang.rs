@@ -1,8 +1,8 @@
 //! The AST defining the drawings language from [CogSci dataset](https://sites.google.com/view/language-abstraction/home).
 
 use babble::{
-    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
-    Printable, Printer, Teachable,
+    Arity, AstNode, BindingExpr, DeBruijnIndex, DiscriminantEq, Expr, LibId, ParseLibIdError,
+    Precedence, Printable, Printer, Teachable,
 };
 use ordered_float::NotNan;
 use std::{
@@ -342,5 +342,11 @@ impl Printable for Drawing {
             }
             (op, _) => write!(printer.writer, "{op}"),
         }
+    }
+}
+
+impl DiscriminantEq for Drawing {
+    fn discriminant_eq(&self, other: &Self) -> bool {
+        self.eq(other)
     }
 }

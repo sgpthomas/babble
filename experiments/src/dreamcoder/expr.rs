@@ -1,8 +1,8 @@
 //! The language of Dream&shy;Coder expressions.
 use super::{parse, util::parens};
 use babble::{
-    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
-    Printable, Printer, Teachable,
+    Arity, AstNode, BindingExpr, DeBruijnIndex, DiscriminantEq, Expr, LibId, ParseLibIdError,
+    Precedence, Printable, Printer, Teachable,
 };
 use egg::{RecExpr, Symbol};
 use nom::error::convert_error;
@@ -310,6 +310,12 @@ impl FromStr for DcExpr {
         parse::parse(s).map(DcExpr).map_err(|e| ParseExprError {
             message: convert_error(s, e),
         })
+    }
+}
+
+impl DiscriminantEq for DreamCoderOp {
+    fn discriminant_eq(&self, other: &Self) -> bool {
+        self.eq(other)
     }
 }
 

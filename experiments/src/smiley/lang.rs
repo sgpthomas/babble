@@ -1,8 +1,8 @@
 //! The AST defining the smiley language.
 
 use babble::{
-    Arity, AstNode, BindingExpr, DeBruijnIndex, Expr, LibId, ParseLibIdError, Precedence,
-    Printable, Printer, Teachable,
+    Arity, AstNode, BindingExpr, DeBruijnIndex, DiscriminantEq, Expr, LibId, ParseLibIdError,
+    Precedence, Printable, Printer, Teachable,
 };
 use egg::Rewrite;
 use lazy_static::lazy_static;
@@ -242,6 +242,12 @@ impl Printable for Smiley {
             }
             (op, _) => write!(printer.writer, "{op} ???"),
         }
+    }
+}
+
+impl DiscriminantEq for Smiley {
+    fn discriminant_eq(&self, other: &Self) -> bool {
+        self.eq(other)
     }
 }
 

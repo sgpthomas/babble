@@ -3,7 +3,7 @@ pub use self::eqsat_experiment::EqsatExperiment;
 
 use babble::{
     extract::{apply_libs, beam::PartialLibCost},
-    util, Arity, AstNode, Expr, Pretty, Printable, Teachable,
+    util, Arity, AstNode, DiscriminantEq, Expr, Pretty, Printable, Teachable,
 };
 use egg::{EGraph, Id, RecExpr, Rewrite, Runner};
 use itertools::Itertools;
@@ -197,6 +197,7 @@ where
         + Display
         + Hash
         + Ord
+        + DiscriminantEq
         + 'static,
 {
     /// Creates a new empty set of experiments
