@@ -292,6 +292,11 @@ where
         })
     }
 
+    /// The raw anti-unifications that we have collected
+    pub fn anti_unifications(&self) -> impl Iterator<Item = &PartialExpr<Op, Var>> {
+        self.aus.iter()
+    }
+
     /// Number of patterns learned.
     #[must_use]
     pub fn size(&self) -> usize {
