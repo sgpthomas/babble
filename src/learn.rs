@@ -168,10 +168,13 @@ where
         AstNode<Op>: Language,
     {
         let roots = &self.roots;
+        println!("Computing co-occurences");
         let co_occurs = self.co_occurences.unwrap_or_else(|| {
             let co_ext = COBuilder::new(egraph, roots);
             co_ext.run()
         });
+
+        println!("Constructing learned libraries");
         LearnedLibrary::new(
             egraph,
             self.learn_trivial,
@@ -290,6 +293,13 @@ where
             let applier: Pattern<_> = reify(LibId(i), au.clone()).into();
             applier
         })
+    }
+
+    pub fn for_each_anti_unification<F>(&mut self, f: F)
+    where
+        F: Fn(&PartialExpr<Op, Var>) -> PartialExpr<Op, Var>,
+    {
+        self.aus = self.aus.iter().map(f).collect();
     }
 
     /// The raw anti-unifications that we have collected
