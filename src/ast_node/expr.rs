@@ -72,7 +72,7 @@ impl<Op: Clone> From<RecExpr<AstNode<Op>>> for Expr<Op> {
                 let child_index = usize::from(id);
                 build(&rec_expr[..=child_index])
             });
-            Self(node)
+            Expr(node)
         }
 
         build(rec_expr.as_ref())
