@@ -92,6 +92,7 @@ pub struct LearnedLibraryBuilder<Op> {
     banned_ops: Vec<Op>,
     roots: Vec<Id>,
     co_occurences: Option<CoOccurrences>,
+    dfta: bool,
 }
 
 impl<Op> Default for LearnedLibraryBuilder<Op> {
@@ -103,6 +104,7 @@ impl<Op> Default for LearnedLibraryBuilder<Op> {
             banned_ops: vec![],
             roots: vec![],
             co_occurences: Option::default(),
+            dfta: true,
         }
     }
 }
@@ -162,6 +164,12 @@ where
         self
     }
 
+    #[must_use]
+    pub fn with_dfta(mut self, dfta: bool) -> Self {
+        self.dfta = dfta;
+        self
+    }
+
     pub fn build<A>(self, egraph: &EGraph<AstNode<Op>, A>) -> LearnedLibrary<Op, (Id, Id)>
     where
         A: Analysis<AstNode<Op>> + Clone,
@@ -182,6 +190,7 @@ where
             self.max_arity,
             self.banned_ops,
             co_occurs,
+            self.dfta,
         )
     }
 }
@@ -213,20 +222,43 @@ pub struct LearnedLibrary<Op, T> {
     co_occurrences: CoOccurrences,
 }
 
+#[allow(unused)]
+fn mem_usage_of<F, X, L>(label: L, f: F) -> (X, usize)
+where
+    F: FnOnce() -> X,
+    L: std::fmt::Display,
+{
+    let before_mem = memory_stats::memory_stats().unwrap().physical_mem;
+    let x = f();
+    let after_mem = memory_stats::memory_stats().unwrap().physical_mem;
+    // println!("{label} {}mb", ((after_mem - before_mem) as f64) / 1e6);
+    (x, after_mem - before_mem)
+}
+
 impl<'a, Op> LearnedLibrary<Op, (Id, Id)>
 where
-    Op: Arity + Clone + Debug + Ord + Sync + Send + Display + DiscriminantEq + 'static,
+    Op: Arity
+        + Clone
+        + Debug
+        + Ord
+        + Sync
+        + Send
+        + Display
+        + DiscriminantEq
+        + std::hash::Hash
+        + 'static,
     AstNode<Op>: Language,
 {
     /// Constructs a [`LearnedLibrary`] from an [`EGraph`] by antiunifying pairs of
     /// enodes to find their common structure.
-    fn new<A: Analysis<AstNode<Op>>>(
+    fn new<A: Analysis<AstNode<Op>> + Clone>(
         egraph: &'a EGraph<AstNode<Op>, A>,
         learn_trivial: bool,
         learn_constants: bool,
         max_arity: Option<usize>,
         banned_ops: Vec<Op>,
         co_occurrences: CoOccurrences,
+        dfta: bool,
     ) -> Self {
         let mut learned_lib = Self {
             aus_by_state: BTreeMap::new(),
@@ -237,12 +269,31 @@ where
             banned_ops,
             co_occurrences,
         };
-        let dfta = Dfta::from(egraph);
-        let dfta = dfta.cross_over();
 
-        for &state in dfta.output_states() {
-            learned_lib.enumerate(&dfta, state);
+        if dfta {
+            let dfta = Dfta::from(egraph);
+            let dfta = dfta.cross_over();
+            println!("crossed over dfta");
+
+            // for each e-class pair
+            for &state in dfta.output_states() {
+                learned_lib.enumerate_over_dfta(&dfta, state);
+            }
+        } else {
+            let classes: Vec<_> = egraph.classes().map(|cls| cls.id).collect();
+
+            let eclass_pairs = classes
+                .iter()
+                .cartesian_product(classes.iter())
+                .map(|(ecls1, ecls2)| (egraph.find(*ecls1), egraph.find(*ecls2)));
+
+            for (ecls1, ecls2) in eclass_pairs {
+                if learned_lib.co_occurrences.may_co_occur(ecls1, ecls2) {
+                    learned_lib.enumerate_over_egraph(egraph, (ecls1, ecls2));
+                }
+            }
         }
+
         learned_lib
     }
 }
@@ -360,10 +411,10 @@ where
 
 impl<Op> LearnedLibrary<Op, (Id, Id)>
 where
-    Op: Arity + Clone + Debug + Ord + DiscriminantEq,
+    Op: Arity + Clone + Debug + Ord + DiscriminantEq + std::hash::Hash,
 {
     /// Computes the antiunifications of `state` in the DFTA `dfta`.
-    fn enumerate(&mut self, dfta: &Dfta<(Op, Op), (Id, Id)>, state: (Id, Id)) {
+    fn enumerate_over_dfta(&mut self, dfta: &Dfta<(Op, Op), (Id, Id)>, state: (Id, Id)) {
         if self.aus_by_state.contains_key(&state) {
             // We've already enumerated this state, so there's nothing to do.
             return;
@@ -388,19 +439,17 @@ where
         let mut same = false;
         let mut different = false;
 
+        // if there is a rule that produces this state
         if let Some(rules) = dfta.get_by_output(&state) {
             for ((op1, op2), inputs) in rules {
                 if op1 == op2 {
-                    // if self.banned_ops.iter().any(|op| op.discriminant_eq(op1)) {
-                    //     continue;
-                    // }
                     same = true;
                     if inputs.is_empty() {
                         aus.insert(AstNode::leaf(op1.clone()).into());
                     } else {
                         // Recursively enumerate the inputs to this rule.
                         for &input in inputs {
-                            self.enumerate(dfta, input);
+                            self.enumerate_over_dfta(dfta, input);
                         }
 
                         // For a rule `op(s1, ..., sn) -> state`, we add an
@@ -431,6 +480,72 @@ where
             aus.insert(PartialExpr::Hole(state));
         }
 
+        self.filter_aus(aus, state);
+    }
+
+    /// Computes the antiunifications of `state` in the `egraph`.
+    /// This avoids computing all of the cross products ahead of time, which is what the
+    /// `Dfta` implementation does. So it should be faster and more memory-efficient.
+    /// However, I'm not totally sure it's equivalent to the `Dfta` version.
+    fn enumerate_over_egraph<A: Analysis<AstNode<Op>> + Clone>(
+        &mut self,
+        egraph: &EGraph<AstNode<Op>, A>,
+        state: (Id, Id),
+    ) {
+        if self.aus_by_state.contains_key(&state) {
+            // we have already enumerated this state
+            return;
+        }
+
+        self.aus_by_state.insert(state, BTreeSet::new());
+
+        let mut aus: BTreeSet<PartialExpr<Op, (Id, Id)>> = BTreeSet::new();
+
+        let mut same = false;
+        let mut different = false;
+
+        let ops1 = egraph[state.0].nodes.iter().map(AstNode::as_parts);
+        for (op1, args1) in ops1 {
+            for (op2, args2) in egraph[state.1].nodes.iter().map(AstNode::as_parts) {
+                if op1 == op2 {
+                    same = true;
+                    if args1.is_empty() && args2.is_empty() {
+                        aus.insert(AstNode::leaf(op1.clone()).into());
+                    } else {
+                        // recursively enumerate the inputs to this rule.
+                        let inputs: Vec<_> =
+                            args1.iter().copied().zip(args2.iter().copied()).collect();
+
+                        for next_state in &inputs {
+                            self.enumerate_over_egraph(egraph, *next_state);
+                        }
+
+                        let new_aus = inputs
+                            .iter()
+                            .map(|input| self.aus_by_state[input].iter().cloned())
+                            .multi_cartesian_product()
+                            .map(|inputs| PartialExpr::from(AstNode::new(op1.clone(), inputs)))
+                            .filter(|au| {
+                                self.max_arity
+                                    .map_or(true, |max_arity| au.unique_holes().len() <= max_arity)
+                            });
+
+                        aus.extend(new_aus);
+                    }
+                } else {
+                    different = true;
+                }
+            }
+        }
+
+        if same && different {
+            aus.insert(PartialExpr::Hole(state));
+        }
+
+        self.filter_aus(aus, state);
+    }
+
+    fn filter_aus(&mut self, mut aus: BTreeSet<PartialExpr<Op, (Id, Id)>>, state: (Id, Id)) {
         if aus.is_empty() {
             aus.insert(PartialExpr::Hole(state));
         } else {

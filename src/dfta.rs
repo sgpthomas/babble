@@ -62,6 +62,11 @@ where
             by_output: BTreeMap::new(),
         }
     }
+
+    #[allow(unused)]
+    pub(crate) fn size(&self) -> usize {
+        self.by_operation.len() + self.by_output.len()
+    }
 }
 
 impl<Op, S> Dfta<Op, S>
@@ -90,14 +95,17 @@ where
     /// states `(s1, s2)` where `s1 != s2`) represent potential antiunifications
     /// of the enodes in the equivalent egraph of this DFTA.
     #[must_use]
-    pub(crate) fn cross_over(&self) -> Dfta<(Op, Op), (S, S)> {
+    pub(crate) fn cross_over(self) -> Dfta<(Op, Op), (S, S)> {
         let mut new_dfta = Dfta::new();
+        // for each enode
         for (op1, rules1) in &self.by_operation {
+            // for children of enode, and eclass that it produces
             for (inputs1, output1) in rules1 {
                 for (op2, rules2) in &self.by_operation {
                     for (inputs2, output2) in rules2 {
                         let new_output = (output1.clone(), output2.clone());
                         if op1 == op2 {
+                            // ops are the same, can assume args len are the same
                             let new_inputs = inputs1.iter().cloned().zip(inputs2.iter().cloned());
                             new_dfta.add_rule((op1.clone(), op2.clone()), new_inputs, new_output);
                         } else {
