@@ -1,7 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from rich.console import Console
 from rich.panel import Panel
-import inspect
+import rich
 
 c = Console()
 
@@ -15,7 +15,7 @@ def confirm(s):
 
 
 def main():
-    print(
+    rich.print(
         Panel.fit(
             (
                 "this script is responsible for running all of the scripts and\n"
@@ -31,7 +31,7 @@ def main():
     print("[magenta bold]generating data[/]")
     print("> parsing dreamcoder data")
     confirm(
-        "[bold]; cargo run --bin=parse_dc harness/data/dreamcoder-benchmarks"
+        "[bold]; cargo run -p babble-experiments --bin=parse_dc harness/data/dreamcoder-benchmarks"
     )
     print("[dim]> written to harness/data_gen/dc_res.csv")
     print()

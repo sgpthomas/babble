@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-from itertools import cycle
 from matplotlib import pyplot as plt
 import csv
 import sys
-import numpy as np
 
 import matplotlib
 matplotlib.rcParams['pdf.fonttype'] = 42
@@ -79,7 +77,7 @@ def get_dc_data(
     outdir = Path("harness/data_gen/cache")
     outdir.mkdir(parents=True, exist_ok=True)
     fname = outdir / fname
-    cmd = f"cargo run --release --bin=benchmark -- {args} --output={fname}"
+    cmd = f"cargo run --release -p babble-experiments --bin=benchmark -- {args} --output={fname}"
 
     run_and_cache(cmd, fname)
 
