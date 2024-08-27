@@ -356,6 +356,7 @@ where
         self.aus.iter()
     }
 
+    /// Extend the set of anti-unifications externally
     pub fn extend(&mut self, aus: impl IntoIterator<Item = PartialExpr<Op, Var>>) {
         self.aus.extend(aus);
     }
