@@ -100,10 +100,10 @@ impl<Op> Default for LearnedLibraryBuilder<Op> {
         Self {
             learn_trivial: false,
             learn_constants: false,
-            max_arity: Option::default(),
+            max_arity: None,
             banned_ops: vec![],
             roots: vec![],
-            co_occurences: Option::default(),
+            co_occurences: None,
             dfta: true,
         }
     }
@@ -208,7 +208,7 @@ pub trait DiscriminantEq {
 pub struct LearnedLibrary<Op, T> {
     /// A map from DFTA states (i.e. pairs of enodes) to their antiunifications.
     aus_by_state: BTreeMap<T, BTreeSet<PartialExpr<Op, T>>>,
-    /// A set of all the nontrivial antiunifications discovered.
+    /// A set of all the antiunifications discovered.
     aus: BTreeSet<PartialExpr<Op, Var>>,
     /// Whether to learn "trivial" anti-unifications.
     learn_trivial: bool,
@@ -288,9 +288,7 @@ where
                 .map(|(ecls1, ecls2)| (egraph.find(*ecls1), egraph.find(*ecls2)));
 
             for (ecls1, ecls2) in eclass_pairs {
-                if learned_lib.co_occurrences.may_co_occur(ecls1, ecls2) {
-                    learned_lib.enumerate_over_egraph(egraph, (ecls1, ecls2));
-                }
+                learned_lib.enumerate_over_egraph(egraph, (ecls1, ecls2));
             }
         }
 
@@ -356,6 +354,10 @@ where
     /// The raw anti-unifications that we have collected
     pub fn anti_unifications(&self) -> impl Iterator<Item = &PartialExpr<Op, Var>> {
         self.aus.iter()
+    }
+
+    pub fn extend(&mut self, aus: impl IntoIterator<Item = PartialExpr<Op, Var>>) {
+        self.aus.extend(aus);
     }
 
     /// Number of patterns learned.
@@ -498,6 +500,10 @@ where
         }
 
         self.aus_by_state.insert(state, BTreeSet::new());
+
+        if !self.co_occurrences.may_co_occur(state.0, state.1) {
+            return;
+        }
 
         let mut aus: BTreeSet<PartialExpr<Op, (Id, Id)>> = BTreeSet::new();
 
