@@ -176,13 +176,13 @@ where
         AstNode<Op>: Language,
     {
         let roots = &self.roots;
-        println!("Computing co-occurences");
+        debug!("Computing co-occurences");
         let co_occurs = self.co_occurences.unwrap_or_else(|| {
             let co_ext = COBuilder::new(egraph, roots);
             co_ext.run()
         });
 
-        println!("Constructing learned libraries");
+        debug!("Constructing learned libraries");
         LearnedLibrary::new(
             egraph,
             self.learn_trivial,
@@ -273,7 +273,7 @@ where
         if dfta {
             let dfta = Dfta::from(egraph);
             let dfta = dfta.cross_over();
-            println!("crossed over dfta");
+            debug!("crossed over dfta");
 
             // for each e-class pair
             for &state in dfta.output_states() {
