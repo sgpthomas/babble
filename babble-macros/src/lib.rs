@@ -1,17 +1,17 @@
 //! Procedural macros for `babble`.
 
 #![warn(
-    clippy::all,
-    clippy::pedantic,
-    anonymous_parameters,
-    elided_lifetimes_in_paths,
-    missing_copy_implementations,
-    missing_debug_implementations,
-    single_use_lifetimes,
-    trivial_casts,
-    unreachable_pub,
-    unused_lifetimes,
-    missing_docs
+  clippy::all,
+  clippy::pedantic,
+  anonymous_parameters,
+  elided_lifetimes_in_paths,
+  missing_copy_implementations,
+  missing_debug_implementations,
+  single_use_lifetimes,
+  trivial_casts,
+  unreachable_pub,
+  unused_lifetimes,
+  missing_docs
 )]
 
 use proc_macro::TokenStream;
@@ -35,7 +35,7 @@ use parse::RewriteRules;
 /// ```
 #[proc_macro]
 pub fn rewrite_rules(tokens: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(tokens as RewriteRules);
-    let output = quote! { #input };
-    TokenStream::from(output)
+  let input = parse_macro_input!(tokens as RewriteRules);
+  let output = quote! { #input };
+  TokenStream::from(output)
 }

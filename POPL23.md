@@ -1,11 +1,11 @@
 # `babble` POPL 2023 Artifact
 
-This is the artifact for paper #94, 
+This is the artifact for paper #94,
  "`babble`: Learning Better Abstractions with E-Graphs and Anti-Unification".
 
-The canonical source for this artifact 
+The canonical source for this artifact
  is the [Github repo](https://github.com/dcao/babble/tree/popl23),
- and an archival copy is on 
+ and an archival copy is on
  Zenodo with DOI: [10.5281/zenodo.7186946](https://zenodo.org/record/7186946).
 
 # Claims
@@ -19,22 +19,21 @@ This artifact validates the following quantitative claims.
 
 # Installation
 
-The artifact requires 
+The artifact requires
  relatively few dependencies if you'd prefer to run on your own machine.
 
 - Rust version > 1.63
 - Python > 3.8, including packages:
-    - matplotlib
-    - numpy
+  - matplotlib
+  - numpy
 - GNU make
-
 
 The artifact will likely be easier and faster to run on your own
  machine if you can install the above dependencies.
 Alternatively, you can use the VM provided in the [Zenodo archival copy](https://zenodo.org/record/7186946)
  that has everything pre-installed.
 
-## Manual installation 
+## Manual installation
 
 Install the above dependencies.
 
@@ -45,7 +44,7 @@ git clone --recursive -b popl23 https://github.com/dcao/babble.git
 cd babble
 ```
 
-If you are working with an existing clone, make sure to pull the submodules. 
+If you are working with an existing clone, make sure to pull the submodules.
 A fresh clone using the `--recursive` flag won't need this.
 
 ```bash
@@ -73,13 +72,13 @@ All necessary dependencies have already been installed,
   and programs have been pre-compiled.
 This repository is already present at `~/babble`; navigate there in the terminal to proceed.
 You can perform a `git pull` from that directory to grab the latest version of this document.
-Everything in the VM is "already run", i.e., 
- the commands below **will only regenerate the plots**, 
+Everything in the VM is "already run", i.e.,
+ the commands below **will only regenerate the plots**,
  not actually do any work.
 If you'd like to re-run the eval, run `make clean` first.
 
-*NOTE*: 
- Performance in the VM will likely be worse in both 
+*NOTE*:
+ Performance in the VM will likely be worse in both
  single-core and parallel performance,
  so some times will be longer.
 
@@ -97,6 +96,7 @@ cargo build --release
 ```
 
 From the `babble` directory, then run:
+
 ```bash
 make plots-quick
 ```
@@ -106,7 +106,6 @@ It runs in parallel, taking about 1.5 minutes on a 6-core laptop.
 Like `make plots`, it will print the names of the plots created under `harness/plots`.
 Those plots should look like those from Figure 11.
 (Note that `make plots-quick` will omit some data, so the plot will re-scale).
-
 
 ## Figure 11: Babble vs Dreamcoder plots
 
@@ -124,13 +123,13 @@ These links will only be clickable after running `make plots`.
 - Fig 11d: [`harness/plots/logo.png`](harness/plots/logo.png)
 - Fig 11e: [`harness/plots/towers.png`](harness/plots/towers.png)
 
-To validate claim 1, 
- observe that `babble` (blue X) 
- tends to be down (faster) 
+To validate claim 1,
+ observe that `babble` (blue X)
+ tends to be down (faster)
  and to the right (higher/better compression ratio)
  than DreamCoder (purple O).
 
-The DreamCoder numbers are pulled from a log, 
+The DreamCoder numbers are pulled from a log,
  and should be identical to those in the paper.
 The `babble` compression ratios should not vary,
  but the time may depending on your machine.
@@ -146,12 +145,12 @@ These links will only be clickable after running `make plots`.
 
 We only supplied domain-specific rewrites for the list and physics domains.
 
-"BabbleSyn" (green triangle) denotes 
+"BabbleSyn" (green triangle) denotes
  `babble` without any domain-specific rewrites (it just does "syntactic" learning).
 Observe that BabbleSyn does not compress as well as `babble`, it's further left.
 
 "EqSat" (red triangle) denotes
- just running equality saturation with the domain-specific rewrites, 
+ just running equality saturation with the domain-specific rewrites,
  but not doing library learning.
 This baseline should run very quickly (low on the graph),
  but achieve relatively little compression,
@@ -171,16 +170,16 @@ Furniture       &      42936 &      10539 &       4.07 &     167.18 &       9417
 Nuts \& Bolts (clean) &      18259 &       2215 &       8.24 &      30.38 &       1744 &      10.47 &      66.06
 ```
 
-It also writes the scatterplot from Figure 12 at 
+It also writes the scatterplot from Figure 12 at
 [`harness/plots/cogsci-scatter.png`](harness/plots/cogsci-scatter.png)
 
 ### Validate Claim 3
 
-Inspect the table printed by `make cogsci-table`. 
+Inspect the table printed by `make cogsci-table`.
 You can freely re-run this command to regenerate the table,
  the results will be cached after the first run.
 
-The columns are the same as those in the paper. 
+The columns are the same as those in the paper.
 Confirm that this data is the same as that shown in the paper,
  modulo small variation in the time columns depending on your machine.
 

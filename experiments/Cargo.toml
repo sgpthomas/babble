@@ -27,30 +27,30 @@ lazy_static = "1.4"
 ref-cast = "1"
 nalgebra = "0.32.2"
 
-[[bin]]
-name = "benchmark"
-path = "src/benchmark/main.rs"
+# [[bin]]
+# name = "benchmark"
+# path = "src/benchmark/main.rs"
 
-[[bin]]
-name = "compression"
-path = "src/compression/main.rs"
+# [[bin]]
+# name = "compression"
+# path = "src/compression/main.rs"
 
-[[bin]]
-name = "drawings"
-path = "src/drawings/main.rs"
+# [[bin]]
+# name = "drawings"
+# path = "src/drawings/main.rs"
 
-[[bin]]
-name = "list"
-path = "src/list/main.rs"
+# [[bin]]
+# name = "list"
+# path = "src/list/main.rs"
 
-[[bin]]
-name = "parse_dc"
-path = "src/parse_dc/main.rs"
+# [[bin]]
+# name = "parse_dc"
+# path = "src/parse_dc/main.rs"
 
-[[bin]]
-name = "print_benchmarks"
-path = "src/print_benchmarks/main.rs"
+# [[bin]]
+# name = "print_benchmarks"
+# path = "src/print_benchmarks/main.rs"
 
-[[bin]]
-name = "smiley"
-path = "src/smiley/main.rs"
+# [[bin]]
+# name = "smiley"
+# path = "src/smiley/main.rs"

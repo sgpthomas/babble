@@ -24,13 +24,13 @@ $ make
 Learning `filter`:
 
 ``` shellsession
-$ cargo run --release --bin=list -- examples/filter-list.bab
+$ cargo run --release --package=babble-experiments --bin=list -- examples/filter-list.bab
 ```
 
 Learning nested functions:
 
 ``` shellsession
-$ cargo run --release --bin=smiley -- examples/nested-functions.bab
+$ cargo run --release --package=babble-experiments --bin=smiley -- examples/nested-functions.bab
 ```
 
 ## How it works

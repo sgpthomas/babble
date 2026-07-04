@@ -10,3 +10,4 @@ harness/plots/*.pdf
 harness/data_gen/*.csv
 .vscode/
 *.pyc
+result
